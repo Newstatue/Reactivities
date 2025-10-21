@@ -17,6 +17,8 @@ public class Handler(AppDbContext context) : IRequestHandler<Command, string>
 {
     public async Task<string> Handle(Command request, CancellationToken cancellationToken)
     {
+        request.Activity.Id = Guid.NewGuid().ToString();
+
         context.Activities.Add(request.Activity);
 
         await context.SaveChangesAsync(cancellationToken);

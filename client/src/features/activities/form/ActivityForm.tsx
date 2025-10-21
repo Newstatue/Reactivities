@@ -1,15 +1,23 @@
-import { Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, Paper, TextField, Typography, CircularProgress } from "@mui/material";
 import type { FormEvent } from "react";
+import { useEffect } from "react";
+import { useActivities } from "../../../lib/hooks/useActivities";
 
 type Props = {
     activity?: Activity
     closeForm: () => void
-    submitForm: (activity: Activity) => void
 }
 
-export default function ActivityForm({ activity, closeForm, submitForm }: Props) {
+export default function ActivityForm({ activity, closeForm }: Props) {
+    const { updateActivity, createActivity } = useActivities();
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    useEffect(() => {
+        if (updateActivity.isSuccess || createActivity.isSuccess) {
+            closeForm();
+        }
+    }, [updateActivity.isSuccess, createActivity.isSuccess, closeForm]);
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
 
@@ -18,9 +26,24 @@ export default function ActivityForm({ activity, closeForm, submitForm }: Props)
             data[key] = value;
         });
 
-        if (activity) data.id = activity.id;
+        const activityData: Activity = {
+            id: activity?.id || '',
+            title: data.title as string,
+            description: data.description as string,
+            category: data.category as string,
+            date: (data.date as string) + ':00',
+            city: data.city as string,
+            venue: data.venue as string,
+            latitude: parseFloat(data.latitude as string) || 0,
+            longitude: parseFloat(data.longitude as string) || 0,
+            isCancelled: activity?.isCancelled || false
+        };
 
-        submitForm(data as unknown as Activity);
+        if (activity) {
+            updateActivity.mutate(activityData);
+        } else {
+            createActivity.mutate(activityData);
+        }
     }
 
     return (
@@ -32,12 +55,24 @@ export default function ActivityForm({ activity, closeForm, submitForm }: Props)
                 <TextField name="title" label="标题" defaultValue={activity?.title} />
                 <TextField name="description" label="描述" defaultValue={activity?.description} multiline rows={3} />
                 <TextField name="category" label="分类" defaultValue={activity?.category} />
-                <TextField name="date" label="日期" defaultValue={activity?.date} type="datetime-local" slotProps={{ inputLabel: { shrink: true } }} />
+                <TextField name="date" label="日期" type="datetime-local"
+                    defaultValue={activity?.date
+                        ? activity.date.slice(0, 16)
+                        : new Date().toISOString().slice(0, 16)
+                    }
+                    slotProps={{ inputLabel: { shrink: true } }} />
                 <TextField name="city" label="城市" defaultValue={activity?.city} />
                 <TextField name="venue" label="地点" defaultValue={activity?.venue} />
                 <Box display="flex" justifyContent="end" gap={3}>
                     <Button onClick={() => closeForm()} color="inherit">取消</Button>
-                    <Button type="submit" color="success">提交</Button>
+                    <Button
+                        type="submit"
+                        color="success"
+                        disabled={updateActivity.isPending || createActivity.isPending}
+                        startIcon={updateActivity.isPending || createActivity.isPending ? <CircularProgress size={20} color="inherit" /> : null}
+                    >
+                        {updateActivity.isPending || createActivity.isPending ? '提交中...' : '提交'}
+                    </Button>
                 </Box>
             </Box>
         </Paper >
