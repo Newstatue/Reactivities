@@ -1,49 +1,21 @@
 import { Box } from "@mui/material";
 import ActivityList from "./ActivityList";
-import ActivityDetail from "../details/ActivityDetail";
-import ActivityForm from "../form/ActivityForm";
+import { useActivities } from "../../../lib/hooks/useActivities";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
 
-type Props = {
-    activities: Activity[]
-    selectActivity: (id: string) => void
-    cancelSelectActivity: () => void
-    selectedActivity?: Activity
-    openForm: (id: string) => void
-    closeForm: () => void
-    editMode: boolean
-}
 
-export default function ActivityDashboard({
-    activities,
-    selectActivity,
-    cancelSelectActivity,
-    selectedActivity,
-    openForm,
-    closeForm,
-    editMode,
-}: Props) {
+export default function ActivityDashboard() {
+   const {activities, isPending} = useActivities();
+   
+   if(!activities||isPending) return <LoadingComponent />
+
     return (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' }, gap: 3 }}>
             <Box>
-                <ActivityList
-                    activities={activities}
-                    selectActivity={selectActivity}
-                />
+                <ActivityList />
             </Box>
             <Box>
-                {selectedActivity && !editMode && (
-                    <ActivityDetail
-                        selectedActivity={selectedActivity}
-                        cancelSelectActivity={cancelSelectActivity}
-                        openForm={openForm}
-                    />
-                )}
-                {editMode && (
-                    <ActivityForm
-                        closeForm={closeForm}
-                        activity={selectedActivity}
-                    />
-                )}
+               Activity Filter
             </Box>
         </Box>
     );

@@ -1,25 +1,17 @@
-import { Box, Button, Card, CardActions, CardContent, CardMedia, CircularProgress, Typography } from "@mui/material"
-import { useActivities } from "../../../lib/hooks/useActivities"
+import { Button, Card, CardActions, CardContent, CardMedia, Typography } from "@mui/material"
+import { Link, useNavigate, useParams } from "react-router";
+import { useActivities } from "../../../lib/hooks/useActivities";
+import NotFound from "../../../app/shared/components/NotFound";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
 
-type Props = {
-    selectedActivity: Activity
-    cancelSelectActivity: () => void
-    openForm: (id: string) => void
-}
+export default function ActivityDetail() {
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const { activity, isLoadingActivity } = useActivities(id);
 
-export default function ActivityDetail({ selectedActivity, cancelSelectActivity, openForm }: Props) {
+    if (isLoadingActivity) return <LoadingComponent />
 
-    const { activities } = useActivities();
-    const activity = activities?.find(x => x.id === selectedActivity.id);
-
-    if (!activity)
-        return
-    <>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
-            <CircularProgress />
-        </Box>
-    </>;
-
+    if (!activity) return <NotFound />;
 
     return (
         <Card sx={{ borderRadius: 3 }}>
@@ -38,8 +30,8 @@ export default function ActivityDetail({ selectedActivity, cancelSelectActivity,
                 <Typography variant="body1">{activity.description}</Typography>
             </CardContent>
             <CardActions>
-                <Button onClick={() => openForm(activity.id)} color="primary">编辑</Button>
-                <Button onClick={cancelSelectActivity} color="secondary">取消</Button>
+                <Button component={Link} to={`/activities/${activity.id}/edit`} color="primary">编辑</Button>
+                <Button onClick={() => navigate("/activities")} color="secondary">取消</Button>
             </CardActions>
         </Card>
     )
