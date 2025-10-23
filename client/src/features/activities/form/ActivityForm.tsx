@@ -1,21 +1,16 @@
 import { Box, Button, Paper, TextField, Typography, CircularProgress } from "@mui/material";
 import type { FormEvent } from "react";
-import { useEffect } from "react";
 import { useActivities } from "../../../lib/hooks/useActivities";
+import { useNavigate, useParams } from "react-router";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
 
-type Props = {
-    activity?: Activity
-    closeForm: () => void
-}
+export default function ActivityForm() {
+    const { id } = useParams();
 
-export default function ActivityForm({ activity, closeForm }: Props) {
-    const { updateActivity, createActivity } = useActivities();
+    const { updateActivity, createActivity, activity, isLoadingActivity } = useActivities(id);
 
-    useEffect(() => {
-        if (updateActivity.isSuccess || createActivity.isSuccess) {
-            closeForm();
-        }
-    }, [updateActivity.isSuccess, createActivity.isSuccess, closeForm]);
+    const navigate = useNavigate();
+
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -26,30 +21,28 @@ export default function ActivityForm({ activity, closeForm }: Props) {
             data[key] = value;
         });
 
-        const activityData: Activity = {
-            id: activity?.id || '',
-            title: data.title as string,
-            description: data.description as string,
-            category: data.category as string,
-            date: (data.date as string) + ':00',
-            city: data.city as string,
-            venue: data.venue as string,
-            latitude: parseFloat(data.latitude as string) || 0,
-            longitude: parseFloat(data.longitude as string) || 0,
-            isCancelled: activity?.isCancelled || false
-        };
+        data.latitude = (data.latitude || "0.0") as string; // Default to "0.0" if undefined
+        data.longitude = (data.longitude || "0.0") as string; // Default to "0.0" if undefined
 
         if (activity) {
-            updateActivity.mutate(activityData);
+            data.id = activity.id;
+            await updateActivity.mutateAsync(data as unknown as Activity);
+            navigate(`/activities/${activity.id}`);
         } else {
-            createActivity.mutate(activityData);
+            createActivity.mutate(data as unknown as Activity, {
+                onSuccess: (id) => {
+                    navigate(`/activities/${id}`);
+                },
+            });
         }
     }
+
+    if (isLoadingActivity) return <LoadingComponent />
 
     return (
         <Paper sx={{ borderRadius: 3, padding: 3 }}>
             <Typography fontSize="1rem" gutterBottom color="primary">
-                创建活动
+                {activity?"编辑活动":"创建活动"}
             </Typography>
             <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={3}>
                 <TextField name="title" label="标题" defaultValue={activity?.title} />
@@ -64,7 +57,7 @@ export default function ActivityForm({ activity, closeForm }: Props) {
                 <TextField name="city" label="城市" defaultValue={activity?.city} />
                 <TextField name="venue" label="地点" defaultValue={activity?.venue} />
                 <Box display="flex" justifyContent="end" gap={3}>
-                    <Button onClick={() => closeForm()} color="inherit">取消</Button>
+                    <Button onClick={() => { }} color="inherit">取消</Button>
                     <Button
                         type="submit"
                         color="success"

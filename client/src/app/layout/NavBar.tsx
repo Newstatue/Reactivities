@@ -1,16 +1,13 @@
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
-import { Button, MenuItem, Typography } from '@mui/material';
+import { MenuItem, Typography } from '@mui/material';
 import { Group } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
-
-type Props = {
-    openForm: () => void
-}
+import MenuItemLink from '../shared/components/MenuItemLink';
 
 
-export default function ButtonAppBar({ openForm }: Props) {
+export default function ButtonAppBar() {
     return (
         <Box sx={{ flexGrow: 1 }}>
             <AppBar
@@ -35,25 +32,23 @@ export default function ButtonAppBar({ openForm }: Props) {
                 }}>
                     {/* 左侧 Logo */}
                     <Box>
-                        <MenuItem sx={{ display: "flex", gap: 1 }}>
-                            <Group fontSize="inherit" />
-                            <Typography fontSize="inherit" fontWeight="bold">
+                        <MenuItemLink to="/">
+                            <Group />
+                            <Typography fontSize="medium" fontWeight="bold">
                                 反应
                             </Typography>
-                        </MenuItem>
+                        </MenuItemLink>
                     </Box>
 
                     {/* 中间导航 */}
                     <Box sx={{ display: "flex" }}>
-                        <MenuItem sx={{ fontSize: "inherit" }}>活动</MenuItem>
-                        <MenuItem sx={{ fontSize: "inherit" }}>新闻</MenuItem>
-                        <MenuItem sx={{ fontSize: "inherit" }}>关于</MenuItem>
+                        <MenuItemLink to="/activities" >活动</MenuItemLink>
+                        <MenuItemLink to="/activities/new" >创建活动</MenuItemLink>
                     </Box>
 
                     {/* 右侧按钮 */}
-                    <Button onClick={openForm} size="small" color="info">
-                        创建活动
-                    </Button>
+                    <MenuItem sx={{ fontSize: "medium" }}>用户菜单</MenuItem>
+
                 </Toolbar>
             </AppBar>
         </Box>
